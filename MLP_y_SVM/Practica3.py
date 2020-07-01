@@ -211,7 +211,7 @@ for name in data_files:
 
 """# Experimento 1 - Iris.csv"""
 
-data_files = ["Iris.csv"]
+name = "Iris.csv"
 learn_rates = [0.01, 0.05, 0.1, 0.2, 0.3, 0.4]
 num_iters = [500, 1000, 1500, 2000, 2500, 3000, 3500]
 list_hidden_layers = [[], [2], [3, 2], [4, 3, 2]]
@@ -220,19 +220,23 @@ num_iters_label = num_iters.copy()
 num_iters_label.insert(0, "Alpha \ N° Ite")
 
 k = 3
-
 for name in data_files:
     for hidden_layers in list_hidden_layers:        
         result_table = [learn_rates]
         data = Leer_Datos(name)
+
         data_np = data.values
-        print(data_np)
         np.random.shuffle(data_np)
         transposed_data = np.transpose(data_np)
         X, y = Separar_X_y(transposed_data)
+
         norm_data_X, mean_data_X, standard_dev_X = Normalizar_Datos(X)
         norm_data = np.concatenate((norm_data_X, y), axis=0)
         k_folds, size_fold = Crear_k_folds(norm_data, k)
+
+        y_values = np.unique(y)
+        acc_test_total_vec = []
+
         for num_iter in num_iters:
             learn_rate_row = []
             for learn_rate in learn_rates:
@@ -246,12 +250,12 @@ for name in data_files:
                     for j in range(k):
                         if j == i:
                             X_test = k_folds[i]['X']
-                            y_test = k_folds[i]['y']
+                            y_test = k_folds[i]['y'] == y_values[l]
                         else:
                             X_train[:, count_sz_fold:count_sz_fold+size_fold] = k_folds[j]['X']
-                            y_train[:, count_sz_fold:count_sz_fold+size_fold] = k_folds[j]['y']
+                            y_train[:, count_sz_fold:count_sz_fold+size_fold] = k_folds[j]['y'] == y_values[l]
                             count_sz_fold += size_fold
-                    
+
                     model_mlp = hidden_layers.copy()
                     model_mlp.insert(0, X_train.shape[0])
                     model_mlp.append(1)
@@ -297,10 +301,7 @@ for name in data_files:
             )
         )
         fig.show()
-
-from google.colab import drive
-drive.mount('/content/drive')
-
+            
 """
 
 # Experimento 2 - heart.csv
